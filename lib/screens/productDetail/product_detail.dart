@@ -19,7 +19,7 @@ class ProductDetail extends StatefulWidget {
 }
 
 class _ProductDetailState extends State<ProductDetail> {
-  FlutterCart flutterCart = FlutterCart();
+  // FlutterCart flutterCart = FlutterCart();
   // Set<CartModel> get getCartItems => flutterCart.cartItemsList.toSet();
   @override
   void initState() {
@@ -110,7 +110,7 @@ class _ProductDetailState extends State<ProductDetail> {
                     Text(
                       product.rating.rate.toString(),
                       style: const TextStyle(
-                          color: Colors.black,
+                          color: AppColors.black,
                           fontWeight: FontWeight.bold,
                           fontSize: 18.0),
                     ),

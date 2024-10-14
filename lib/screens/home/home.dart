@@ -1,6 +1,4 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
-import 'package:ecommerce_store/bloc/cartBloc/cart_states.dart';
 import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
 import 'package:ecommerce_store/bloc/home_bloc/home_events.dart';
 import 'package:ecommerce_store/bloc/home_bloc/home_states.dart';
@@ -91,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return Padding(
                           padding: const EdgeInsets.all(0.0),
                           child: ListTile(
-                            tileColor: Colors.white,
+                            tileColor: AppColors.white,
                             title: Text(suggestion.title),
                             subtitle: Text(suggestion.category),
                           ),
@@ -199,12 +197,12 @@ class ProductCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10.0),
         side: const BorderSide(
-          color: Colors.grey,
+          color: AppColors.grey,
           width: 1.0,
         ),
       ),
       margin: const EdgeInsets.symmetric(vertical: 8.0),
-      color: Colors.white,
+      color: AppColors.white,
       elevation: 6.0,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
@@ -219,7 +217,7 @@ class ProductCard extends StatelessWidget {
               height: 200.0,
             ),
             const Divider(
-              color: Colors.grey,
+              color: AppColors.grey,
             ),
             Align(
               alignment: Alignment.topLeft,
@@ -249,7 +247,7 @@ class ProductCard extends StatelessWidget {
                 Text(
                   product.rating.rate.toString(),
                   style: const TextStyle(
-                      color: Colors.black,
+                      color: AppColors.black,
                       fontWeight: FontWeight.bold,
                       fontSize: 18.0),
                 ),

@@ -1,17 +1,21 @@
-import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_states.dart';
 import 'package:ecommerce_store/models/product.model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cart/flutter_cart.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class CartBloc extends Bloc<CartEvents, CartState> {
   FlutterCart flutterCart = FlutterCart();
   Set<CartModel> get getCartItems => flutterCart.cartItemsList.toSet();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseAuth auth = FirebaseAuth.instance;
   double get totalAmount => flutterCart.total;
   double get subTotal => flutterCart.subtotal;
+  int get cartItemCount => flutterCart.cartLength;
+
   CartBloc() : super(CartItemInitialState()) {
     on<AddCartItem>((event, emit) {
       addToCart(event.product);
@@ -19,9 +23,8 @@ class CartBloc extends Bloc<CartEvents, CartState> {
     });
 
     on<RemoveCartItem>((event, emit) {
-      removeItemFromCart(event.cartItem);
-
-      emit(CartItemRemoved(carItems: getCartItems));
+      final updatedCartitems = removeItemFromCart(event.cartItem);
+      emit(CartItemRemoved(carItems: updatedCartitems));
     });
 
     on<RemoveAllCartItem>((event, emit) {
@@ -34,6 +37,11 @@ class CartBloc extends Bloc<CartEvents, CartState> {
       updateQuantity(event.item, event.quantity);
       emit(ItemQuantityUpdated(item: event.item, quantity: event.quantity));
     });
+
+    // on<AddDataToDatabase>((event, emit) async {
+    //   await saveOrderToDB(event.cartItems, event.totalAmount);
+    //   emit(DataAddedToDatabase());
+    // });
   }
 
   void addToCart(Product product) {
@@ -61,7 +69,26 @@ class CartBloc extends Bloc<CartEvents, CartState> {
     flutterCart.clearCart();
   }
 
-  void removeItemFromCart(CartModel item) {
-    flutterCart.removeItem(item.productId, []);
+  Set<CartModel> removeItemFromCart(CartModel item) {
+    flutterCart.removeItem(
+        item.productId, [ProductVariant(price: item.variants.first.price)]);
+    return flutterCart.cartItemsList.toSet();
+  }
+
+  Future<bool> saveOrderToDB(
+      Set<CartModel> cartItem, double totalAmount) async {
+    for (int i = 0; i < cartItem.length; i++) {
+      await firestore.collection('Orders').doc().set({
+        'productName': cartItem.elementAt(i).productName,
+        'productDescription': cartItem.elementAt(i).productDetails,
+        'productImage': cartItem.elementAt(i).productImages!.first,
+        'quantity': cartItem.elementAt(i).quantity,
+        'price': cartItem.elementAt(i).variants.first.price.toString(),
+        'total': totalAmount,
+        'userName': auth.currentUser!.displayName,
+      });
+    }
+    clearCart();
+    return true;
   }
 }

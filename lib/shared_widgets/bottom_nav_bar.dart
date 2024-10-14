@@ -1,3 +1,4 @@
+import 'package:ecommerce_store/constants/colors.dart';
 import 'package:flutter/material.dart';
 
 class BottomNavbar extends StatelessWidget {
@@ -16,7 +17,7 @@ class BottomNavbar extends StatelessWidget {
         child: Text(
           title,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.white,
             fontWeight: FontWeight.bold,
             fontSize: 20.0,
           ),

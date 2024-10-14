@@ -1,4 +1,3 @@
-import 'package:ecommerce_store/models/product.model.dart';
 import 'package:flutter_cart/flutter_cart.dart';
 
 abstract class CartState {}
@@ -22,3 +21,5 @@ class ItemQuantityUpdated extends CartState {
   final int quantity;
   ItemQuantityUpdated({required this.item, required this.quantity});
 }
+
+class DataAddedToDatabase extends CartState {}

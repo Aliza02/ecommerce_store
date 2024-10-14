@@ -20,3 +20,9 @@ class UpdateItemQuantity extends CartEvents {
   final int quantity;
   UpdateItemQuantity({required this.item, required this.quantity});
 }
+
+class AddDataToDatabase extends CartEvents {
+  final Set<CartModel> cartItems;
+  final double totalAmount;
+  AddDataToDatabase({required this.cartItems, required this.totalAmount});
+}

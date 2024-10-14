@@ -38,7 +38,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
 
       final ConnectivityResult connectivityResult =
           await Connectivity().checkConnectivity();
-
+      print(connectivityResult.name);
       if (connectivityResult.name == 'mobile' ||
           connectivityResult.name == 'wifi') {
         products = await getStoredData();
@@ -49,7 +49,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
           if (products.isNotEmpty) {
             emit(HomeStateWithData(product: products));
           }
-          emit(HomeStateWithNoData(message: 'No data found'));
+          // emit(HomeStateWithNoData(message: 'No data found'));
         }
       } else {
         products = await getStoredData();

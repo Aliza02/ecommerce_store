@@ -1,15 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cart_item/cart_item.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_states.dart';
-import 'package:ecommerce_store/models/product.model.dart';
+import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/shared_widgets/bottom_nav_bar.dart';
 import 'package:ecommerce_store/utils/Utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cart/cart.dart';
 import 'package:flutter_cart/model/cart_model.dart';
 
 class Cart extends StatefulWidget {
@@ -20,20 +19,31 @@ class Cart extends StatefulWidget {
 }
 
 class _CartState extends State<Cart> {
-  FlutterCart flutterCart = FlutterCart();
-  Set<CartModel> get cartItems => flutterCart.cartItemsList.toSet();
+  FirebaseAuth auth = FirebaseAuth.instance;
+
+  void checkout(Set<CartModel> cartItems) {
+    if (auth.currentUser != null) {
+      if (cartItems.isEmpty) {
+        Utils.showSnackBar('Add Item to Proceed', context);
+      } else {
+        Navigator.pushNamed(context, AppRoutes.checkout);
+      }
+    } else {
+      Utils.showSnackBar('Login to Proceed', context);
+      Navigator.pushNamed(context, AppRoutes.login);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     double totalAmount = BlocProvider.of<CartBloc>(context).totalAmount;
     double subTotal = BlocProvider.of<CartBloc>(context).subTotal;
+    final cartItems = BlocProvider.of<CartBloc>(context).getCartItems;
     final theme = Theme.of(context);
     return SafeArea(
       child: Scaffold(
         bottomNavigationBar: BottomNavbar(
-          onPressed: () => cartItems.isEmpty
-              ? Utils.showSnackBar('Add Item to Proceed', context)
-              : Navigator.pushNamed(context, AppRoutes.checkout),
+          onPressed: () => checkout(cartItems),
           title: 'Checkout',
         ),
         body: Padding(
@@ -45,7 +55,8 @@ class _CartState extends State<Cart> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: Icon(Icons.arrow_back_ios, color: Colors.black),
+                      icon: const Icon(Icons.arrow_back_ios,
+                          color: AppColors.black),
                       onPressed: () => Navigator.pop(context),
                     ),
                     Text(
@@ -66,7 +77,7 @@ class _CartState extends State<Cart> {
               BlocConsumer<CartBloc, CartState>(
                 listener: (context, state) {
                   if (state is AllCartItemRemoved) {
-                    Utils.showSnackBar('All item has been removed', context);
+                    Utils.showSnackBar('Cart has been emptied', context);
                   } else if (state is CartItemRemoved) {
                     Utils.showSnackBar('Item removed', context);
                   }
@@ -79,11 +90,12 @@ class _CartState extends State<Cart> {
                         ? const NoItemMessage()
                         : Expanded(
                             child: ListView.builder(
-                              itemCount: cartItems.length,
+                              itemCount: state.carItems.length,
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
-                                CartModel item = cartItems.elementAt(index);
+                                CartModel item =
+                                    state.carItems.elementAt(index);
 
                                 return CartItem(
                                   item: item,
@@ -167,40 +179,54 @@ class _CartState extends State<Cart> {
   }
 }
 
-class CartItem extends StatelessWidget {
+class CartItem extends StatefulWidget {
   final CartModel item;
   const CartItem({super.key, required this.item});
 
   @override
+  State<CartItem> createState() => _CartItemState();
+}
+
+class _CartItemState extends State<CartItem> {
+  int itemQuantity = 0;
+  @override
+  void initState() {
+    super.initState();
+
+    itemQuantity = widget.item.quantity;
+  }
+
+  @override
   Widget build(BuildContext context) {
-    int itemQuantity = item.quantity;
     final theme = Theme.of(context);
 
     return Dismissible(
-      key: Key(item.productId),
+      key: Key(widget.item.productId),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        color: Colors.red,
+        color: AppColors.red,
         child: const Text(
           'swipe to delete',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.white),
         ),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Card(
-          color: Colors.white,
+          color: AppColors.white,
           child: ListTile(
             leading: SizedBox(
               width: 50.0,
-              child: CachedNetworkImage(imageUrl: item.productImages!.first),
+              child: CachedNetworkImage(
+                  imageUrl: widget.item.productImages!.first),
             ),
-            title: Text(item.productName, style: theme.textTheme.displaySmall),
+            title: Text(widget.item.productName,
+                style: theme.textTheme.displaySmall),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
-                "\$${item.variants.first.price.toString()}",
+                "\$${widget.item.variants.first.price.toString()}",
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ),
@@ -213,20 +239,26 @@ class CartItem extends StatelessWidget {
                       return;
                     }
                     BlocProvider.of<CartBloc>(context).add(
-                      UpdateItemQuantity(item: item, quantity: --itemQuantity),
+                      UpdateItemQuantity(
+                          item: widget.item, quantity: --itemQuantity),
                     );
                   },
                   icon: const Icon(Icons.remove),
                 ),
-                Text(
-                  item.quantity.toString(),
-                  style:
-                      const TextStyle(fontSize: 16, color: Colors.deepPurple),
+                BlocBuilder<CartBloc, CartState>(
+                  builder: (context, state) {
+                    return Text(
+                      itemQuantity.toString(),
+                      style: const TextStyle(
+                          fontSize: 16, color: AppColors.deepPurple),
+                    );
+                  },
                 ),
                 IconButton(
                   onPressed: () {
                     BlocProvider.of<CartBloc>(context).add(
-                      UpdateItemQuantity(item: item, quantity: ++itemQuantity),
+                      UpdateItemQuantity(
+                          item: widget.item, quantity: ++itemQuantity),
                     );
                   },
                   icon: const Icon(Icons.add),
@@ -236,9 +268,8 @@ class CartItem extends StatelessWidget {
           ),
         ),
       ),
-      onDismissed: (direction) => BlocProvider.of<CartBloc>(context).add(
-        RemoveCartItem(cartItem: item),
-      ),
+      onDismissed: (direction) => BlocProvider.of<CartBloc>(context)
+          .add(RemoveCartItem(cartItem: widget.item)),
     );
   }
 }

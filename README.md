@@ -1,4 +1,4 @@
 # ecommerce_store
 
 ## Demo
-demo and UI: https://drive.google.com/file/d/1YtGgK2QF6ziEaDGS66bdT5EVCqppYqQ8/view?usp=sharing
+demo and UI: https://drive.google.com/drive/folders/1IDz_rLWWVHkzL4jQuWoBRiYvSYE1http?usp=sharing

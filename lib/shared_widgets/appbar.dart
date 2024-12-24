@@ -62,23 +62,23 @@ class _DefaultAppbarState extends State<DefaultAppbar> {
           color: AppColors.white,
           onPressed: () => Navigator.pushNamed(context, AppRoutes.cart),
         ),
-        PopupMenuButton(
-          position: PopupMenuPosition.under,
-          color: AppColors.white,
-          itemBuilder: (context) {
-            return [
-              PopupMenuItem(
-                child: ListTile(
-                  tileColor: AppColors.white,
-                  title: Text(auth.currentUser != null ? 'Logout' : 'Login'),
-                  onTap: () => auth.currentUser != null
-                      ? logout()
-                      : Navigator.pushNamed(context, AppRoutes.login),
-                ),
-              ),
-            ];
-          },
-        ),
+        // PopupMenuButton(
+        //   position: PopupMenuPosition.under,
+        //   color: AppColors.white,
+        //   itemBuilder: (context) {
+        //     return [
+        //       PopupMenuItem(
+        //         child: ListTile(
+        //           tileColor: AppColors.white,
+        //           title: Text(auth.currentUser != null ? 'Logout' : 'Login'),
+        //           onTap: () => auth.currentUser != null
+        //               ? logout()
+        //               : Navigator.pushNamed(context, AppRoutes.login),
+        //         ),
+        //       ),
+        //     ];
+        //   },
+        // ),
       ],
     );
   }

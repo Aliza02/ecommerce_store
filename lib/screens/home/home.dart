@@ -1,15 +1,22 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
 import 'package:ecommerce_store/bloc/home_bloc/home_events.dart';
 import 'package:ecommerce_store/bloc/home_bloc/home_states.dart';
+import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/models/product.model.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/shared_widgets/appbar.dart';
+import 'package:ecommerce_store/utils/Utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,29 +25,182 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final TextEditingController searchProductController = TextEditingController();
+
+  final auth = FirebaseAuth.instance;
+  Map<String, IconData> drawerTile = {
+    'Home': Icons.home_outlined,
+    'Cart': Icons.shopping_cart_outlined,
+    'Orders': Icons.list_alt_outlined,
+    'Profile': Icons.person_outline,
+    'Settings': Icons.settings_applications_outlined
+  };
   Set<Product> products = {};
+  Position? currentPosition;
+
+  Future<String> getAddressFromLatLng(Position currentPosition) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(
+        currentPosition.latitude, currentPosition.longitude);
+    Placemark place = placemarks.first;
+    // BlocProvider.of<HomeBloc>(context).currentAddress =
+    String currentAddress =
+        "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+    return currentAddress;
+  }
+
+  Stream<String> _handleLocationPermission() async* {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+    if (!serviceEnabled) {
+      // print('Location services are disabled. Please enable the services');
+    }
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        openAppSettings();
+      }
+    }
+    if (permission == LocationPermission.whileInUse) {
+      currentPosition = await Geolocator.getCurrentPosition();
+      BlocProvider.of<CartBloc>(context).currentAddress =
+          await getAddressFromLatLng(currentPosition!);
+      String address = await getAddressFromLatLng(currentPosition!);
+
+      yield address;
+    }
+    if (permission == LocationPermission.deniedForever) {
+      openAppSettings();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-
     SchedulerBinding.instance.addPostFrameCallback((_) {
       BlocProvider.of<HomeBloc>(context).add(FetchDataEvent());
     });
+    WidgetsBinding.instance.addObserver(this);
+
+    // _handleLocationPermission();
   }
 
   @override
   void dispose() {
     searchProductController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _handleLocationPermission();
+      print('App resumed');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final userCreated = BlocProvider.of<SignUpBloc>(context).userCreated;
+
     return SafeArea(
       child: Scaffold(
+        drawer: Drawer(
+          backgroundColor: AppColors.white,
+          child: Column(
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                ),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 40.0),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30.0,
+                          child: auth.currentUser != null && userCreated
+                              ? Text(auth.currentUser!.displayName![0])
+                              : const Icon(
+                                  Icons.person,
+                                ),
+                        ),
+                        const SizedBox(width: 10.0),
+                        Text(
+                          userCreated || auth.currentUser != null
+                              ? auth.currentUser!.displayName!
+                              : 'Guest User',
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 20.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Flexible(
+                child: ListView.builder(
+                  itemCount: drawerTile.length,
+                  itemBuilder: (context, index) {
+                    return BlocBuilder<HomeBloc, HomeStates>(
+                      builder: (context, state) {
+                        return ListTile(
+                          selected: BlocProvider.of<HomeBloc>(context)
+                                  .selectedDrawerTileIndex ==
+                              index,
+                          selectedTileColor: AppColors.primary,
+                          selectedColor: AppColors.white,
+                          title: Text(drawerTile.keys.elementAt(index)),
+                          leading: Icon(drawerTile.values.elementAt(index)),
+                          onTap: () {
+                            BlocProvider.of<HomeBloc>(context)
+                                .selectedDrawerTileIndex = index;
+                            Navigator.pop(context);
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              TextButton.icon(
+                onPressed: () {
+                  if (auth.currentUser != null) {
+                    auth.signOut();
+                    Utils.showLoadingDialog(context);
+                    Navigator.pushNamed(context, AppRoutes.login);
+                  } else {
+                    Navigator.pushNamed(context, AppRoutes.login);
+                  }
+                },
+                label: auth.currentUser != null
+                    ? const Text(
+                        'Logout',
+                        style: TextStyle(fontSize: 18.0, color: AppColors.grey),
+                      )
+                    : const Text(
+                        'Login',
+                        style: TextStyle(fontSize: 18.0, color: AppColors.grey),
+                      ),
+                icon: const Icon(
+                  Icons.logout,
+                  size: 28.0,
+                  color: AppColors.grey,
+                ),
+              ),
+              const SizedBox(height: 10.0),
+            ],
+          ),
+        ),
         appBar: const DefaultAppbar(),
         body: InkWell(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -52,6 +212,30 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 const SizedBox(
                   height: 16.0,
+                ),
+                Row(
+                  children: [
+                    const Icon(Icons.location_on_outlined),
+                    StreamBuilder(
+                      stream: _handleLocationPermission(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text('Fetching location...');
+                        } else if (snapshot.hasError) {
+                          return Text(snapshot.error.toString());
+                        } else if (snapshot.hasData) {
+                          return Flexible(
+                            child: Text(
+                              snapshot.data.toString(),
+                            ),
+                          );
+                        } else {
+                          return Text(snapshot.data.toString());
+                        }
+                      },
+                    ),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),

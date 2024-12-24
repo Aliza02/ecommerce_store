@@ -21,29 +21,18 @@ class Cart extends StatefulWidget {
 class _CartState extends State<Cart> {
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  void checkout(Set<CartModel> cartItems) {
-    if (auth.currentUser != null) {
-      if (cartItems.isEmpty) {
-        Utils.showSnackBar('Add Item to Proceed', context);
-      } else {
-        Navigator.pushNamed(context, AppRoutes.checkout);
-      }
-    } else {
-      Utils.showSnackBar('Login to Proceed', context);
-      Navigator.pushNamed(context, AppRoutes.login);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     double totalAmount = BlocProvider.of<CartBloc>(context).totalAmount;
     double subTotal = BlocProvider.of<CartBloc>(context).subTotal;
     final cartItems = BlocProvider.of<CartBloc>(context).getCartItems;
+
     final theme = Theme.of(context);
     return SafeArea(
       child: Scaffold(
         bottomNavigationBar: BottomNavbar(
-          onPressed: () => checkout(cartItems),
+          onPressed: () => BlocProvider.of<CartBloc>(context)
+              .checkout(cartItems, context, AppRoutes.shipment),
           title: 'Checkout',
         ),
         body: Padding(

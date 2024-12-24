@@ -35,8 +35,9 @@ class LoginBloc extends Bloc<LoginEvents, LoginStates> {
               emit(InValidState(errorMessage: 'Fail to login: try again'));
             }
           } else {
-            emit(InValidState(
-                errorMessage: 'Connect to internet and try again'));
+            emit(
+              InValidState(errorMessage: 'Connect to internet and try again'),
+            );
           }
         }
       },

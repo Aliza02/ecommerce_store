@@ -15,6 +15,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
   StreamSubscription? connectivitySubscription;
 
   Set<Product> products = {};
+  int selectedDrawerTileIndex = 0;
   HomeBloc() : super(HomeInitialState()) {
     on<FetchDataEvent>((event, emit) async {
       emit(HomeLoadingData());
@@ -38,7 +39,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
 
       final ConnectivityResult connectivityResult =
           await Connectivity().checkConnectivity();
-      print(connectivityResult.name);
+
       if (connectivityResult.name == 'mobile' ||
           connectivityResult.name == 'wifi') {
         products = await getStoredData();
@@ -77,10 +78,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
       if (response.status == true) {
         List<dynamic> jsonResponse = jsonDecode(response.data);
 
-        List<Product> products =
-            jsonResponse.map((json) => Product.fromJson(json)).toList();
+        Set<Product> products =
+            jsonResponse.map((json) => Product.fromJson(json)).toSet();
 
-        return products.toSet();
+        return products;
       }
 
       return {};
@@ -95,10 +96,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
 
     if (jsonData != null) {
       List<dynamic> jsonResponse = jsonDecode(jsonData);
-      List<Product> products =
-          jsonResponse.map((json) => Product.fromJson(json)).toList();
+      Set<Product> products =
+          jsonResponse.map((json) => Product.fromJson(json)).toSet();
 
-      return products.toSet();
+      return products;
     }
     return {};
   }

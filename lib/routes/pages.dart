@@ -9,6 +9,7 @@ import 'package:ecommerce_store/screens/cart/cart.dart';
 import 'package:ecommerce_store/screens/checkout/checkout.dart';
 import 'package:ecommerce_store/screens/home/home.dart';
 import 'package:ecommerce_store/screens/productDetail/product_detail.dart';
+import 'package:ecommerce_store/screens/shipment/shipment_detail.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Pages {
@@ -18,28 +19,14 @@ class Pages {
             BlocProvider(
               create: (context) => HomeBloc(),
             ),
-            BlocProvider.value(
-              value: BlocProvider.of<CartBloc>(context),
-            ),
           ],
           child: const HomeScreen(),
         ),
-    AppRoutes.productDetail: (context) => BlocProvider.value(
-          value: BlocProvider.of<CartBloc>(context),
-          child: const ProductDetail(),
-        ),
-    AppRoutes.cart: (context) => BlocProvider.value(
-          value: BlocProvider.of<CartBloc>(context),
-          child: const Cart(),
-        ),
-    AppRoutes.checkout: (context) => BlocProvider.value(
-          value: BlocProvider.of<CartBloc>(context),
-          child: const Checkout(),
-        ),
-    AppRoutes.login: (context) => BlocProvider.value(
-          value: BlocProvider.of<LoginBloc>(context),
-          child: const Login(),
-        ),
+    AppRoutes.productDetail: (context) => const ProductDetail(),
+    AppRoutes.cart: (context) => const Cart(),
+    AppRoutes.checkout: (context) => const Checkout(),
+    AppRoutes.login: (context) => const Login(),
+    AppRoutes.shipment: (context) => const ShipmentDetail(),
     AppRoutes.signup: (context) => BlocProvider(
           create: (context) => SignUpBloc(),
           child: const Signup(),

@@ -72,6 +72,7 @@ class LoginState extends State<Login> {
               BlocConsumer<LoginBloc, LoginStates>(
                 listener: (context, state) {
                   if (state is InValidState) {
+                    Navigator.pop(context);
                     Utils.showSnackBar(state.errorMessage, context);
                   } else if (state is LoginLoadingState) {
                     Utils.showLoadingDialog(context);

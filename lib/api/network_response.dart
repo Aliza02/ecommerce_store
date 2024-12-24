@@ -5,7 +5,7 @@ class NetworkEventResponse<T> {
   final T? response;
 
   const NetworkEventResponse.failure(
-      {this.response, this.data, this.message, this.status});
+      {this.response, this.data, this.message, this.status = false});
   const NetworkEventResponse.success(
-      {this.response, this.data, this.message, this.status});
+      {this.response, this.data, this.message, this.status = true});
 }

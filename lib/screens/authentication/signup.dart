@@ -91,6 +91,7 @@ class SignupState extends State<Signup> {
                 BlocConsumer<SignUpBloc, SignUpStates>(
                     listener: (context, state) {
                   if (state is InvalidSignUpState) {
+                    Navigator.pop(context);
                     Utils.showSnackBar(state.errorMessage, context);
                   } else if (state is SignUpLoadingState) {
                     Utils.showLoadingDialog(context);
@@ -106,13 +107,14 @@ class SignupState extends State<Signup> {
                         style: theme.textTheme.titleSmall,
                       ),
                       onPressed: () {
-                        BlocProvider.of<SignUpBloc>(context)
-                            .add(SignUpSubmitEvent(
-                          name: name.text,
-                          email: email.text,
-                          password: password.text,
-                          confirmPassword: confirmPassword.text,
-                        ));
+                        BlocProvider.of<SignUpBloc>(context).add(
+                          SignUpSubmitEvent(
+                            name: name.text,
+                            email: email.text,
+                            password: password.text,
+                            confirmPassword: confirmPassword.text,
+                          ),
+                        );
                       },
                     );
                   } else {

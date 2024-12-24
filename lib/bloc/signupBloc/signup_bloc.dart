@@ -59,16 +59,17 @@ class SignUpBloc extends Bloc<SignupEvents, SignUpStates> {
     });
   }
 
-  Future<void> userSignup(
-      {required String name,
-      required String email,
-      required String password,
-      required String confirmPassword}) async {
+  Future<void> userSignup({
+    required String name,
+    required String email,
+    required String password,
+    required String confirmPassword,
+  }) async {
     try {
       userCredentials = await auth.createUserWithEmailAndPassword(
           email: email, password: password);
       user = userCredentials?.user;
-
+      user!.updateDisplayName(name);
       userCreated = true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'email-already-in-use') {

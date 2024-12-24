@@ -6,8 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 Future<NetworkEventResponse> fetchData() async {
   try {
-    final response =
-        await http.get(Uri.parse('https://fakestoreapi.com/products'));
+    final response = await http.get(
+      Uri.parse('https://fakestoreapi.com/products'),
+    );
     if (response.statusCode != 200) {
       return const NetworkEventResponse.failure(
           message: 'Failed to load data: Try Again');
@@ -16,13 +17,12 @@ Future<NetworkEventResponse> fetchData() async {
     await storeData(data);
     return NetworkEventResponse.success(data: response.body, status: true);
   } catch (e) {
+    // print(e,s);
     return NetworkEventResponse.failure(message: e.toString());
   }
 }
 
 Future<void> storeData(List<dynamic> data) async {
-  print('shared');
   final prefs = await SharedPreferences.getInstance();
-
   await prefs.setString('api_data', json.encode(data));
 }

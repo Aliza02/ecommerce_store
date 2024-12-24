@@ -1,9 +1,11 @@
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/loginBloc/login_bloc.dart';
+import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/firebase_options.dart';
 import 'package:ecommerce_store/routes/pages.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/utils/theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,6 +34,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => LoginBloc(),
+        ),
+        BlocProvider(
+          create: (context) => SignUpBloc(),
         ),
       ],
       child: MaterialApp(

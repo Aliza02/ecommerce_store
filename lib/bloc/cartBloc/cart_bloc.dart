@@ -1,14 +1,19 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_states.dart';
 import 'package:ecommerce_store/models/product.model.dart';
+import 'package:ecommerce_store/routes/routes.dart';
+import 'package:ecommerce_store/utils/Utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cart/flutter_cart.dart';
 
 class CartBloc extends Bloc<CartEvents, CartState> {
   FlutterCart flutterCart = FlutterCart();
+  String? currentAddress;
+  bool? addressChanged;
+  TextEditingController addressController = TextEditingController();
   Set<CartModel> get getCartItems => flutterCart.cartItemsList.toSet();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   FirebaseAuth auth = FirebaseAuth.instance;
@@ -37,11 +42,19 @@ class CartBloc extends Bloc<CartEvents, CartState> {
       updateQuantity(event.item, event.quantity);
       emit(ItemQuantityUpdated(item: event.item, quantity: event.quantity));
     });
-
-    // on<AddDataToDatabase>((event, emit) async {
-    //   await saveOrderToDB(event.cartItems, event.totalAmount);
-    //   emit(DataAddedToDatabase());
-    // });
+  }
+  void checkout(
+      Set<CartModel> cartItems, BuildContext context, String routeName) {
+    if (auth.currentUser != null) {
+      if (cartItems.isEmpty) {
+        Utils.showSnackBar('Add Item to Proceed', context);
+      } else {
+        Navigator.pushNamed(context, routeName);
+      }
+    } else {
+      Utils.showSnackBar('Login to Proceed', context);
+      Navigator.pushNamed(context, AppRoutes.login);
+    }
   }
 
   void addToCart(Product product) {

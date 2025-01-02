@@ -20,6 +20,7 @@ class Cart extends StatelessWidget {
     double totalAmount = BlocProvider.of<CartBloc>(context).totalAmount;
     double subTotal = BlocProvider.of<CartBloc>(context).subTotal;
     final cartItems = BlocProvider.of<CartBloc>(context).getCartItems;
+    final cartItemCount = BlocProvider.of<CartBloc>(context).cartItemCount;
     final theme = Theme.of(context);
 
     return SafeArea(
@@ -52,10 +53,15 @@ class Cart extends StatelessWidget {
                     ),
                     const Spacer(),
                     InkWell(
-                      onTap: () => BlocProvider.of<CartBloc>(context)
-                          .add(RemoveAllCartItem()),
-                      child: const Icon(
+                      onTap: cartItemCount == 0
+                          ? null
+                          : () => BlocProvider.of<CartBloc>(context)
+                              .add(RemoveAllCartItem()),
+                      child: Icon(
                         Icons.delete,
+                        color: cartItemCount == 0
+                            ? AppColors.grey
+                            : AppColors.black,
                       ),
                     ),
                   ],
@@ -79,7 +85,7 @@ class Cart extends StatelessWidget {
                             child: ListView.builder(
                               itemCount: state.carItems.length,
                               shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
+                              // physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
                                 CartModel item =
                                     state.carItems.elementAt(index);
@@ -95,7 +101,7 @@ class Cart extends StatelessWidget {
                       child: ListView.builder(
                         itemCount: cartItems.length,
                         shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
+                        // physics: const NeverScrollableScrollPhysics(),
                         itemBuilder: (context, index) {
                           CartModel item = cartItems.elementAt(index);
 
@@ -111,7 +117,7 @@ class Cart extends StatelessWidget {
                             child: ListView.builder(
                               itemCount: cartItems.length,
                               shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
+                              // physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
                                 CartModel item = cartItems.elementAt(index);
 
@@ -175,7 +181,7 @@ class CartItem extends StatefulWidget {
 }
 
 class _CartItemState extends State<CartItem> {
-  int itemQuantity = 0;
+  int itemQuantity = 1;
   @override
   void initState() {
     super.initState();
@@ -209,7 +215,7 @@ class _CartItemState extends State<CartItem> {
                   imageUrl: widget.item.productImages!.first),
             ),
             title: Text(widget.item.productName,
-                style: theme.textTheme.displaySmall),
+                maxLines: 2, style: theme.textTheme.displaySmall),
             subtitle: Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: Text(
@@ -221,16 +227,11 @@ class _CartItemState extends State<CartItem> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  onPressed: () {
-                    if (itemQuantity == 0) {
-                      return;
-                    }
-                    BlocProvider.of<CartBloc>(context).add(
-                      UpdateItemQuantity(
-                          item: widget.item, quantity: --itemQuantity),
-                    );
-                  },
-                  icon: const Icon(Icons.remove),
+                  onPressed: decreaseQuantity,
+                  icon: Icon(
+                    Icons.remove,
+                    color: itemQuantity == 1 ? AppColors.grey : AppColors.black,
+                  ),
                 ),
                 BlocBuilder<CartBloc, CartState>(
                   builder: (context, state) {
@@ -242,12 +243,7 @@ class _CartItemState extends State<CartItem> {
                   },
                 ),
                 IconButton(
-                  onPressed: () {
-                    BlocProvider.of<CartBloc>(context).add(
-                      UpdateItemQuantity(
-                          item: widget.item, quantity: ++itemQuantity),
-                    );
-                  },
+                  onPressed: increaseQuantity,
                   icon: const Icon(Icons.add),
                 ),
               ],
@@ -257,6 +253,21 @@ class _CartItemState extends State<CartItem> {
       ),
       onDismissed: (direction) => BlocProvider.of<CartBloc>(context)
           .add(RemoveCartItem(cartItem: widget.item)),
+    );
+  }
+
+  void decreaseQuantity() {
+    if (itemQuantity == 1) {
+      return;
+    }
+    BlocProvider.of<CartBloc>(context).add(
+      UpdateItemQuantity(item: widget.item, quantity: --itemQuantity),
+    );
+  }
+
+  void increaseQuantity() {
+    BlocProvider.of<CartBloc>(context).add(
+      UpdateItemQuantity(item: widget.item, quantity: ++itemQuantity),
     );
   }
 }

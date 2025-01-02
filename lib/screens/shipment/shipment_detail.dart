@@ -21,89 +21,58 @@ class ShipmentDetail extends StatelessWidget {
               .checkout(cartItems, context, AppRoutes.checkout),
           title: 'Place Order',
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0, left: 0.0),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios,
-                          color: AppColors.black,
-                        ),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Text(
-                        'Shipping Details',
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
-                ),
-                Text(
-                  'Address',
-                  style: theme.textTheme.labelSmall,
-                ),
-                const AddressBar(),
-                const SizedBox(height: 10.0),
-                Text(
-                  'Payment Method',
-                  style: theme.textTheme.labelSmall,
-                ),
-                const Card(
-                    elevation: 1.0,
-                    color: AppColors.white,
-                    child: RadioTiles()),
-                const SizedBox(height: 10.0),
-                Text(
-                  'Products',
-                  style: theme.textTheme.labelSmall,
-                ),
-                Card(
-                  elevation: 1.0,
-                  color: AppColors.white,
-                  child: Expanded(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: cartItems.length,
-                      physics: const NeverScrollableScrollPhysics(),
-                      separatorBuilder: (context, index) => const Divider(),
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(cartItems.elementAt(index).productName),
-                          subtitle: Text(
-                              'Quantity: ${cartItems.elementAt(index).quantity}'),
-                          trailing: Text(
-                              '\$ ${cartItems.elementAt(index).variants.first.price}'),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10.0),
-                Row(
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0, left: 0.0),
+                child: Row(
                   children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios,
+                        color: AppColors.black,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                     Text(
-                      'Total',
-                      style: theme.textTheme.labelMedium,
+                      'Shipping Details',
+                      style: theme.textTheme.titleLarge,
                     ),
                     const Spacer(),
-                    Text(
-                      " \$${totalAmount.round().toString()}",
-                      style: theme.textTheme.labelMedium,
-                    ),
                   ],
                 ),
-                const SizedBox(height: 10.0),
-              ],
-            ),
+              ),
+              Text(
+                'Address',
+                style: theme.textTheme.labelSmall,
+              ),
+              const AddressBar(),
+              const SizedBox(height: 10.0),
+              Text(
+                'Payment Method',
+                style: theme.textTheme.labelSmall,
+              ),
+              const Card(
+                  elevation: 1.0, color: AppColors.white, child: RadioTiles()),
+              const Spacer(),
+              Row(
+                children: [
+                  Text(
+                    'Total',
+                    style: theme.textTheme.labelMedium,
+                  ),
+                  const Spacer(),
+                  Text(
+                    " \$${totalAmount.round().toString()}",
+                    style: theme.textTheme.labelMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10.0),
+            ],
           ),
         ),
       ),
@@ -159,7 +128,7 @@ class _AddressBarState extends State<AddressBar> {
   @override
   Widget build(BuildContext context) {
     final currentAddress = BlocProvider.of<CartBloc>(context).currentAddress;
-    // bool addressChanged = BlocProvider.of<CartBloc>(context).addressChanged!;
+
     return Card(
       color: AppColors.white,
       margin: const EdgeInsets.symmetric(vertical: 10.0),

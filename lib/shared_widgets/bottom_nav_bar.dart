@@ -9,6 +9,7 @@ class BottomNavbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return SizedBox(
       height: 50.0,
       child: ElevatedButton(

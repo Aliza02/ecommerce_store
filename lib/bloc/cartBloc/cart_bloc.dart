@@ -88,16 +88,18 @@ class CartBloc extends Bloc<CartEvents, CartState> {
     return flutterCart.cartItemsList.toSet();
   }
 
-  Future<bool> saveOrderToDB(
-      Set<CartModel> cartItem, double totalAmount) async {
+  Future<bool> saveOrderToDB(Set<CartModel> cartItem, double totalAmount,
+      String shipmentAddress, String paymentMethod) async {
     for (int i = 0; i < cartItem.length; i++) {
-      await firestore.collection('Orders').doc().set({
+      await firestore.collection('Orders').doc(auth.currentUser!.uid).set({
         'productName': cartItem.elementAt(i).productName,
         'productDescription': cartItem.elementAt(i).productDetails,
         'productImage': cartItem.elementAt(i).productImages!.first,
         'quantity': cartItem.elementAt(i).quantity,
         'price': cartItem.elementAt(i).variants.first.price.toString(),
         'total': totalAmount,
+        'shipmentAddress': shipmentAddress,
+        'paymentMethod': paymentMethod,
         'userName': auth.currentUser!.displayName,
       });
     }

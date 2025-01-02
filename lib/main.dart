@@ -1,4 +1,5 @@
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
+import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
 import 'package:ecommerce_store/bloc/loginBloc/login_bloc.dart';
 import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/firebase_options.dart';
@@ -27,6 +28,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = FirebaseAuth.instance;
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -38,11 +40,15 @@ class MyApp extends StatelessWidget {
         BlocProvider(
           create: (context) => SignUpBloc(),
         ),
+        BlocProvider(
+          create: (context) => HomeBloc(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.themeData,
-        initialRoute: AppRoutes.login,
+        initialRoute:
+            auth.currentUser != null ? AppRoutes.home : AppRoutes.login,
         routes: Pages.pages,
       ),
     );

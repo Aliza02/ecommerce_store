@@ -32,12 +32,6 @@ class _DefaultAppbarState extends State<DefaultAppbar> {
         ),
       ),
       scrolledUnderElevation: 0.0,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(30),
-        ),
-      ),
-      elevation: 0.0,
       iconTheme: const IconThemeData(color: AppColors.white),
       backgroundColor: AppColors.primary,
       actions: [

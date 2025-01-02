@@ -1,6 +1,7 @@
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
 import 'package:ecommerce_store/constants/colors.dart';
+import 'package:ecommerce_store/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -46,7 +47,8 @@ class Utils {
               onPressed: () {
                 Navigator.pop(context);
                 BlocProvider.of<CartBloc>(context).add(RemoveAllCartItem());
-                Navigator.popUntil(context, ModalRoute.withName('/'));
+                Navigator.popUntil(
+                    context, ModalRoute.withName(AppRoutes.home));
               },
               child: Text('Place another order',
                   style: theme.textTheme.titleSmall),

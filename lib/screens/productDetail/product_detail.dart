@@ -132,6 +132,7 @@ class _ProductDetailState extends State<ProductDetail> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Text(
                     product.description,
+                    textAlign: TextAlign.justify,
                     style: theme.textTheme.displayMedium,
                   ),
                 ),

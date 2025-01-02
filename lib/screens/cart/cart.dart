@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_states.dart';
+import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/shared_widgets/bottom_nav_bar.dart';
@@ -11,23 +12,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cart/model/cart_model.dart';
 
-class Cart extends StatefulWidget {
+class Cart extends StatelessWidget {
   const Cart({super.key});
-
-  @override
-  State<Cart> createState() => _CartState();
-}
-
-class _CartState extends State<Cart> {
-  FirebaseAuth auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
     double totalAmount = BlocProvider.of<CartBloc>(context).totalAmount;
     double subTotal = BlocProvider.of<CartBloc>(context).subTotal;
     final cartItems = BlocProvider.of<CartBloc>(context).getCartItems;
-
     final theme = Theme.of(context);
+
     return SafeArea(
       child: Scaffold(
         bottomNavigationBar: BottomNavbar(
@@ -46,7 +40,11 @@ class _CartState extends State<Cart> {
                     IconButton(
                       icon: const Icon(Icons.arrow_back_ios,
                           color: AppColors.black),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        BlocProvider.of<HomeBloc>(context)
+                            .selectedDrawerTileIndex = 0;
+                      },
                     ),
                     Text(
                       'Cart',

@@ -7,6 +7,7 @@ import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/models/product.model.dart';
 import 'package:ecommerce_store/routes/routes.dart';
+import 'package:ecommerce_store/screens/cart/cart.dart';
 import 'package:ecommerce_store/shared_widgets/appbar.dart';
 import 'package:ecommerce_store/utils/Utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     'Cart': Icons.shopping_cart_outlined,
     'Orders': Icons.list_alt_outlined,
     'Profile': Icons.person_outline,
-    'Settings': Icons.settings_applications_outlined
   };
   Set<Product> products = {};
   Position? currentPosition;
@@ -104,6 +104,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Set<String> pages = {
+    AppRoutes.home,
+    AppRoutes.cart,
+    AppRoutes.orders,
+    AppRoutes.profile,
+  };
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -126,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       children: [
                         CircleAvatar(
                           radius: 30.0,
-                          child: auth.currentUser != null && userCreated
+                          child: auth.currentUser != null || userCreated
                               ? Text(auth.currentUser!.displayName![0])
                               : const Icon(
                                   Icons.person,
@@ -157,14 +164,26 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           selected: BlocProvider.of<HomeBloc>(context)
                                   .selectedDrawerTileIndex ==
                               index,
-                          selectedTileColor: AppColors.primary,
-                          selectedColor: AppColors.white,
+                          // selectedTileColor: AppColors.primary,
+                          trailing: BlocProvider.of<HomeBloc>(context)
+                                      .selectedDrawerTileIndex ==
+                                  index
+                              ? const Icon(
+                                  Icons.circle,
+                                  size: 15.0,
+                                )
+                              : const SizedBox(),
+                          selectedColor: AppColors.primary,
                           title: Text(drawerTile.keys.elementAt(index)),
                           leading: Icon(drawerTile.values.elementAt(index)),
                           onTap: () {
+                            Navigator.pop(context);
                             BlocProvider.of<HomeBloc>(context)
                                 .selectedDrawerTileIndex = index;
-                            Navigator.pop(context);
+                            Navigator.pushNamed(
+                              context,
+                              pages.elementAt(index),
+                            );
                           },
                         );
                       },

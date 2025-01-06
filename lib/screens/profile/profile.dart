@@ -1,9 +1,16 @@
+import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
+import 'package:ecommerce_store/bloc/profileBloc/profile_bloc.dart';
+import 'package:ecommerce_store/bloc/profileBloc/profile_events.dart';
+import 'package:ecommerce_store/bloc/profileBloc/profile_states.dart';
 import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
+import 'package:ecommerce_store/utils/Utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -28,7 +35,11 @@ class ProfileScreen extends StatelessWidget {
                         Icons.arrow_back_ios,
                         color: AppColors.black,
                       ),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        BlocProvider.of<HomeBloc>(context)
+                            .selectedDrawerTileIndex = 0;
+                      },
                     ),
                     Text(
                       'Profile',
@@ -41,22 +52,29 @@ class ProfileScreen extends StatelessWidget {
                 radius: 50.0,
                 backgroundColor: AppColors.primary,
                 child: auth.currentUser != null || userCreated
-                    ? Text(
-                        auth.currentUser!.displayName![0],
-                        style: const TextStyle(
-                          fontSize: 40.0,
-                          color: AppColors.white,
-                        ),
-                      )
+                    ? BlocBuilder<ProfileBloc, ProfileStates>(
+                        builder: (context, state) {
+                        return Text(
+                          auth.currentUser!.displayName![0],
+                          style: const TextStyle(
+                            fontSize: 40.0,
+                            color: AppColors.white,
+                          ),
+                        );
+                      })
                     : const Icon(
                         Icons.person,
                       ),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Text(
-                  auth.currentUser!.displayName.toString(),
-                  style: theme.textTheme.titleLarge,
+                child: BlocBuilder<ProfileBloc, ProfileStates>(
+                  builder: (context, state) {
+                    return Text(
+                      auth.currentUser!.displayName.toString(),
+                      style: theme.textTheme.titleLarge,
+                    );
+                  },
                 ),
               ),
               Text(
@@ -74,13 +92,142 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16.0),
-              ProfileOptionsTile(title: 'Change Name', theme: theme),
-              ProfileOptionsTile(title: 'Change Password', theme: theme),
-              ProfileOptionsTile(title: 'Location', theme: theme),
+              BlocBuilder<ProfileBloc, ProfileStates>(
+                builder: (context, state) {
+                  return Stack(
+                    children: [
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity: state is NameFieldDisplayed ? 0.0 : 1.0,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          transform: Matrix4.translationValues(
+                            0,
+                            0, // Slide up and fade out
+                            0,
+                          ),
+                          child: ProfileOptionsTile(
+                            onTap: () => BlocProvider.of<ProfileBloc>(context)
+                                .add(ShowNameField()),
+                            title: 'Change Name',
+                            theme: theme,
+                          ),
+                        ),
+                      ),
+                      if (state is NameFieldDisplayed)
+                        AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          opacity: 1.0,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                            transform: Matrix4.translationValues(
+                              0,
+                              0,
+                              0,
+                            ),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextField(
+                                controller:
+                                    BlocProvider.of<ProfileBloc>(context)
+                                        .nameController,
+                                decoration: InputDecoration(
+                                  suffixIcon: IconButton(
+                                    onPressed: () => changeName(
+                                        context,
+                                        BlocProvider.of<ProfileBloc>(context)
+                                            .nameController
+                                            .text),
+                                    icon: const Icon(Icons.check),
+                                  ),
+                                  labelText: 'Enter Name',
+                                  labelStyle: theme.textTheme.labelSmall,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+              BlocBuilder<ProfileBloc, ProfileStates>(
+                builder: (context, state) {
+                  return Stack(
+                    children: [
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 300),
+                        opacity: state is PasswordFieldDisplayed ? 0.0 : 1.0,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          transform: Matrix4.translationValues(
+                            0,
+                            0,
+                            0,
+                          ),
+                          child: ProfileOptionsTile(
+                              onTap: () => BlocProvider.of<ProfileBloc>(context)
+                                  .add(ShowPasswordField()),
+                              title: 'Change Password',
+                              theme: theme),
+                        ),
+                      ),
+                      if (state is PasswordFieldDisplayed)
+                        AnimatedOpacity(
+                          duration: const Duration(milliseconds: 300),
+                          opacity: 1.0,
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                            transform: Matrix4.translationValues(
+                              0,
+                              0,
+                              0,
+                            ),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: TextField(
+                                controller:
+                                    BlocProvider.of<ProfileBloc>(context)
+                                        .passwordController,
+                                decoration: InputDecoration(
+                                  suffixIcon: IconButton(
+                                    onPressed: () => changePassword(
+                                        context,
+                                        BlocProvider.of<ProfileBloc>(context)
+                                            .passwordController
+                                            .text),
+                                    icon: const Icon(Icons.check),
+                                  ),
+                                  labelText: 'Enter new Password',
+                                  labelStyle: theme.textTheme.labelSmall,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+              ),
+              ProfileOptionsTile(onTap: () {}, title: 'Location', theme: theme),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: ListTile(
-                  onTap: () {},
+                  onTap: () async {
+                    await auth.signOut();
+
+                    Navigator.popAndPushNamed(context, AppRoutes.login);
+                  },
                   trailing: const Icon(
                     Icons.logout,
                     color: AppColors.white,
@@ -101,6 +248,18 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
+
+  void changeName(BuildContext context, String updatedName) async {
+    await FirebaseAuth.instance.currentUser!.updateDisplayName(updatedName);
+    FirebaseAuth.instance.currentUser!.reload();
+    BlocProvider.of<ProfileBloc>(context).add(HideNameField());
+  }
+
+  void changePassword(BuildContext context, String updatedPassword) async {
+    await FirebaseAuth.instance.currentUser!.updatePassword(updatedPassword);
+    FirebaseAuth.instance.currentUser!.reload();
+    BlocProvider.of<ProfileBloc>(context).add(HidePasswordField());
+  }
 }
 
 class ProfileOptionsTile extends StatelessWidget {
@@ -108,17 +267,19 @@ class ProfileOptionsTile extends StatelessWidget {
     super.key,
     required this.theme,
     required this.title,
+    required this.onTap,
   });
 
   final ThemeData theme;
   final String title;
+  final Function onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: ListTile(
-        onTap: () {},
+        onTap: () => onTap(),
         trailing: title == 'Location'
             ? const LocationPermissionSwitch()
             : const SizedBox(),
@@ -147,6 +308,44 @@ class LocationPermissionSwitch extends StatefulWidget {
 
 class _LocationPermissionSwitchState extends State<LocationPermissionSwitch> {
   bool allowed = false;
+  void checkPermisson() async {
+    LocationPermission permission;
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.whileInUse) {
+      setState(() {
+        allowed = true;
+      });
+    } else {
+      setState(() {
+        allowed = false;
+      });
+    }
+  }
+
+  void changePermission() async {
+    if (allowed) {
+      Geolocator.openLocationSettings();
+      setState(() {
+        allowed = !allowed;
+      });
+    } else {
+      // Geolocator.requestPermission();
+      setState(() {
+        allowed = !allowed;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addPersistentFrameCallback((_) {
+      checkPermisson();
+      // setState(() {});
+    });
+    // checkPermisson();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Switch(
@@ -155,9 +354,7 @@ class _LocationPermissionSwitchState extends State<LocationPermissionSwitch> {
       activeTrackColor: AppColors.primary.withOpacity(0.5),
       value: allowed,
       onChanged: (val) {
-        setState(() {
-          allowed = val;
-        });
+        changePermission();
       },
     );
   }

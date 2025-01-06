@@ -59,6 +59,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // print('Location services are disabled. Please enable the services');
     }
     permission = await Geolocator.checkPermission();
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
@@ -85,8 +86,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       BlocProvider.of<HomeBloc>(context).add(FetchDataEvent());
     });
     WidgetsBinding.instance.addObserver(this);
-
-    // _handleLocationPermission();
   }
 
   @override
@@ -100,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _handleLocationPermission();
-      print('App resumed');
+      print('asd');
     }
   }
 
@@ -142,7 +141,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         const SizedBox(width: 10.0),
                         Text(
                           userCreated || auth.currentUser != null
-                              ? auth.currentUser!.displayName!
+                              ? auth.currentUser!.displayName.toString()
                               : 'Guest User',
                           style: const TextStyle(
                             color: AppColors.white,
@@ -196,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   if (auth.currentUser != null) {
                     auth.signOut();
                     Utils.showLoadingDialog(context);
-                    Navigator.pushNamed(context, AppRoutes.login);
+                    Navigator.popAndPushNamed(context, AppRoutes.login);
                   } else {
                     Navigator.pushNamed(context, AppRoutes.login);
                   }

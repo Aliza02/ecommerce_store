@@ -91,7 +91,7 @@ class CartBloc extends Bloc<CartEvents, CartState> {
   Future<bool> saveOrderToDB(Set<CartModel> cartItem, double totalAmount,
       String shipmentAddress, String paymentMethod) async {
     for (int i = 0; i < cartItem.length; i++) {
-      await firestore.collection('Orders').doc(auth.currentUser!.uid).set({
+      await firestore.collection(auth.currentUser!.uid).doc().set({
         'productName': cartItem.elementAt(i).productName,
         'productDescription': cartItem.elementAt(i).productDetails,
         'productImage': cartItem.elementAt(i).productImages!.first,

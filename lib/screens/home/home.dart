@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     List<Placemark> placemarks = await placemarkFromCoordinates(
         currentPosition.latitude, currentPosition.longitude);
     Placemark place = placemarks.first;
-    // BlocProvider.of<HomeBloc>(context).currentAddress =
+
     String currentAddress =
         "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
     return currentAddress;
@@ -52,30 +52,28 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Stream<String> _handleLocationPermission() async* {
     bool serviceEnabled;
     LocationPermission permission;
-
+    permission = await Geolocator.checkPermission();
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
-      // print('Location services are disabled. Please enable the services');
-    }
-    permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+      yield 'Please enable location service from settings';
+    } else {
       if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          openAppSettings();
+        }
+      } else if (permission == LocationPermission.whileInUse &&
+          serviceEnabled) {
+        currentPosition = await Geolocator.getCurrentPosition();
+        BlocProvider.of<CartBloc>(context).currentAddress =
+            await getAddressFromLatLng(currentPosition!);
+        String address = await getAddressFromLatLng(currentPosition!);
+
+        yield address;
+      } else if (permission == LocationPermission.deniedForever) {
         openAppSettings();
       }
-    }
-    if (permission == LocationPermission.whileInUse) {
-      currentPosition = await Geolocator.getCurrentPosition();
-      BlocProvider.of<CartBloc>(context).currentAddress =
-          await getAddressFromLatLng(currentPosition!);
-      String address = await getAddressFromLatLng(currentPosition!);
-
-      yield address;
-    }
-    if (permission == LocationPermission.deniedForever) {
-      openAppSettings();
     }
   }
 
@@ -99,7 +97,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _handleLocationPermission();
-      print('asd');
     }
   }
 

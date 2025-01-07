@@ -306,44 +306,29 @@ class LocationPermissionSwitch extends StatefulWidget {
       _LocationPermissionSwitchState();
 }
 
-class _LocationPermissionSwitchState extends State<LocationPermissionSwitch> {
+class _LocationPermissionSwitchState extends State<LocationPermissionSwitch>
+    with WidgetsBindingObserver {
   bool allowed = false;
-  void checkPermisson() async {
-    LocationPermission permission;
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.whileInUse) {
-      setState(() {
-        allowed = true;
-      });
-    } else {
-      setState(() {
-        allowed = false;
-      });
-    }
+
+  Future<void> checkPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    setState(() {
+      allowed = serviceEnabled;
+    });
   }
 
-  void changePermission() async {
-    if (allowed) {
-      Geolocator.openLocationSettings();
-      setState(() {
-        allowed = !allowed;
-      });
-    } else {
-      // Geolocator.requestPermission();
-      setState(() {
-        allowed = !allowed;
-      });
-    }
+  Future<void> changePermission() async {
+    await Geolocator.openLocationSettings();
+    setState(() {
+      allowed = !allowed;
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    SchedulerBinding.instance.addPersistentFrameCallback((_) {
-      checkPermisson();
-      // setState(() {});
-    });
-    // checkPermisson();
+    WidgetsBinding.instance.addObserver(this);
+    checkPermission();
   }
 
   @override

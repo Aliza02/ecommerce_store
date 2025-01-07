@@ -1,5 +1,6 @@
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
+import 'package:ecommerce_store/bloc/profileBloc/profile_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:flutter/material.dart';
@@ -100,6 +101,46 @@ class Utils {
           content: Text(
             message,
             textAlign: TextAlign.center,
+          ),
+        );
+      },
+    );
+  }
+
+  static void showPhotosOptionDialog(
+      {required BuildContext context,
+      required Function onCamera,
+      required Function onGallery}) {
+    final theme = Theme.of(context);
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          alignment: Alignment.center,
+          title: Text('Choose one', style: theme.textTheme.titleLarge),
+          actionsAlignment: MainAxisAlignment.center,
+          contentTextStyle: theme.textTheme.displayMedium,
+          icon: const Icon(Icons.camera_alt, color: AppColors.black, size: 50),
+          content: SizedBox(
+            height: 120.0,
+            child: Column(
+              children: [
+                ListTile(
+                  title:
+                      Text('Take Photo', style: theme.textTheme.displayMedium),
+                  onTap: () {
+                    onCamera();
+                  },
+                ),
+                ListTile(
+                    title: Text('Upload Image',
+                        style: theme.textTheme.displayMedium),
+                    onTap: () {
+                      onGallery();
+                    }),
+              ],
+            ),
           ),
         );
       },

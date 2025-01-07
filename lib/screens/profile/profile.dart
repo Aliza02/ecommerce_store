@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
 import 'package:ecommerce_store/bloc/profileBloc/profile_bloc.dart';
 import 'package:ecommerce_store/bloc/profileBloc/profile_events.dart';
@@ -8,7 +10,6 @@ import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/utils/Utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -48,24 +49,7 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              CircleAvatar(
-                radius: 50.0,
-                backgroundColor: AppColors.primary,
-                child: auth.currentUser != null || userCreated
-                    ? BlocBuilder<ProfileBloc, ProfileStates>(
-                        builder: (context, state) {
-                        return Text(
-                          auth.currentUser!.displayName![0],
-                          style: const TextStyle(
-                            fontSize: 40.0,
-                            color: AppColors.white,
-                          ),
-                        );
-                      })
-                    : const Icon(
-                        Icons.person,
-                      ),
-              ),
+              ProfilePhoto(auth: auth, userCreated: userCreated),
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: BlocBuilder<ProfileBloc, ProfileStates>(
@@ -84,7 +68,12 @@ class ProfileScreen extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: OutlinedButton(
-                  onPressed: () => print('edit profile'),
+                  onPressed: () {
+                    Utils.showPhotosOptionDialog(
+                        context: context,
+                        onCamera: () => takePhotoFromCamera(context),
+                        onGallery: () => takePhotoFromGallery(context));
+                  },
                   child: Text(
                     'Edit Profile Photo',
                     style: theme.textTheme.labelSmall,
@@ -259,6 +248,74 @@ class ProfileScreen extends StatelessWidget {
     await FirebaseAuth.instance.currentUser!.updatePassword(updatedPassword);
     FirebaseAuth.instance.currentUser!.reload();
     BlocProvider.of<ProfileBloc>(context).add(HidePasswordField());
+  }
+
+  void takePhotoFromCamera(BuildContext context) {
+    Navigator.pop(context);
+    BlocProvider.of<ProfileBloc>(context).getFromCamera();
+  }
+
+  void takePhotoFromGallery(BuildContext context) {
+    Navigator.pop(context);
+    BlocProvider.of<ProfileBloc>(context).getFromGallery();
+  }
+}
+
+class ProfilePhoto extends StatefulWidget {
+  const ProfilePhoto({
+    super.key,
+    required this.auth,
+    required this.userCreated,
+  });
+
+  final FirebaseAuth auth;
+  final bool userCreated;
+
+  @override
+  State<ProfilePhoto> createState() => _ProfilePhotoState();
+}
+
+class _ProfilePhotoState extends State<ProfilePhoto> {
+  @override
+  void initState() {
+    super.initState();
+
+    BlocProvider.of<ProfileBloc>(context).add(CheckProfilePhoto());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ProfileBloc, ProfileStates>(
+      builder: (context, state) {
+        if (state is HasProfilePhoto) {
+          return CircleAvatar(
+              radius: 50.0,
+              backgroundColor: AppColors.primary,
+              child: (widget.auth.currentUser != null || widget.userCreated) &&
+                      !BlocProvider.of<ProfileBloc>(context).hasProfilePhoto
+                  ? Text(
+                      widget.auth.currentUser!.displayName![0],
+                      style: const TextStyle(
+                        fontSize: 40.0,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : ClipOval(
+                      child: Image.file(
+                        BlocProvider.of<ProfileBloc>(context).imageFile!,
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.cover,
+                      ),
+                    ));
+        } else {
+          return const CircleAvatar(
+            child: CircularProgressIndicator(),
+          );
+        }
+        // return const SizedBox();
+      },
+    );
   }
 }
 

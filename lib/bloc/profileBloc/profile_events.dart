@@ -9,3 +9,5 @@ class ShowPasswordField extends ProfileEvents {}
 class HidePasswordField extends ProfileEvents {}
 
 class CheckProfilePhoto extends ProfileEvents {}
+
+class LoadingProfilePhoto extends ProfileEvents {}

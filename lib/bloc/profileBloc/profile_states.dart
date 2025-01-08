@@ -11,3 +11,5 @@ class PasswordFieldDisplayed extends ProfileStates {}
 class PasswordFieldHide extends ProfileStates {}
 
 class HasProfilePhoto extends ProfileStates {}
+
+class ProfilePhotoLoading extends ProfileStates {}

@@ -113,33 +113,38 @@ class Utils {
       required Function onGallery}) {
     final theme = Theme.of(context);
     showDialog(
-      barrierDismissible: false,
+      barrierDismissible: true,
       context: context,
       builder: (context) {
-        return AlertDialog(
-          alignment: Alignment.center,
-          title: Text('Choose one', style: theme.textTheme.titleLarge),
-          actionsAlignment: MainAxisAlignment.center,
-          contentTextStyle: theme.textTheme.displayMedium,
-          icon: const Icon(Icons.camera_alt, color: AppColors.black, size: 50),
-          content: SizedBox(
-            height: 120.0,
-            child: Column(
-              children: [
-                ListTile(
-                  title:
-                      Text('Take Photo', style: theme.textTheme.displayMedium),
-                  onTap: () {
-                    onCamera();
-                  },
-                ),
-                ListTile(
-                    title: Text('Upload Image',
+        return GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.of(context).pop(),
+          child: AlertDialog(
+            alignment: Alignment.center,
+            title: Text('Choose one', style: theme.textTheme.titleLarge),
+            actionsAlignment: MainAxisAlignment.center,
+            contentTextStyle: theme.textTheme.displayMedium,
+            icon:
+                const Icon(Icons.camera_alt, color: AppColors.black, size: 50),
+            content: SizedBox(
+              height: 120.0,
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text('Take Photo',
                         style: theme.textTheme.displayMedium),
                     onTap: () {
-                      onGallery();
-                    }),
-              ],
+                      onCamera();
+                    },
+                  ),
+                  ListTile(
+                      title: Text('Upload Image',
+                          style: theme.textTheme.displayMedium),
+                      onTap: () {
+                        onGallery();
+                      }),
+                ],
+              ),
             ),
           ),
         );

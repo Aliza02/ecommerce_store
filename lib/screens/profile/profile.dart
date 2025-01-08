@@ -239,25 +239,57 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void changeName(BuildContext context, String updatedName) async {
-    await FirebaseAuth.instance.currentUser!.updateDisplayName(updatedName);
-    FirebaseAuth.instance.currentUser!.reload();
-    BlocProvider.of<ProfileBloc>(context).add(HideNameField());
+    if (updatedName.isNotEmpty) {
+      Utils.showLoadingDialog(context);
+      await FirebaseAuth.instance.currentUser!.updateDisplayName(updatedName);
+      Navigator.pop(context);
+      FirebaseAuth.instance.currentUser!.reload();
+      BlocProvider.of<ProfileBloc>(context).add(HideNameField());
+      Utils.showSnackBar('User Name has been updated', context);
+    } else {
+      Utils.showSnackBar('Please fill in to proceed', context);
+    }
   }
 
   void changePassword(BuildContext context, String updatedPassword) async {
-    await FirebaseAuth.instance.currentUser!.updatePassword(updatedPassword);
-    FirebaseAuth.instance.currentUser!.reload();
-    BlocProvider.of<ProfileBloc>(context).add(HidePasswordField());
+    if (updatedPassword.isEmpty) {
+      Utils.showSnackBar('Please fill in to proceed', context);
+    } else {
+      Utils.showLoadingDialog(context);
+      try {
+        await FirebaseAuth.instance.currentUser!
+            .updatePassword(updatedPassword);
+        Navigator.pop(context);
+        FirebaseAuth.instance.currentUser!.reload();
+        BlocProvider.of<ProfileBloc>(context).add(HidePasswordField());
+        Utils.showSnackBar('Password has been updated', context);
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'weak-password') {
+          Navigator.pop(context);
+          Utils.showSnackBar(
+              'Password should be atleast 6 characters', context);
+        }
+        if (e.code == 'requires-recent-login') {
+          Navigator.pop(context);
+          Utils.showSnackBar(
+              'Please Relogin again to change password', context);
+        }
+      }
+    }
   }
 
-  void takePhotoFromCamera(BuildContext context) {
+  void takePhotoFromCamera(BuildContext context) async {
     Navigator.pop(context);
-    BlocProvider.of<ProfileBloc>(context).getFromCamera();
+    BlocProvider.of<ProfileBloc>(context).add(LoadingProfilePhoto());
+    await BlocProvider.of<ProfileBloc>(context).getFromCamera();
+    BlocProvider.of<ProfileBloc>(context).add(CheckProfilePhoto());
   }
 
-  void takePhotoFromGallery(BuildContext context) {
+  void takePhotoFromGallery(BuildContext context) async {
     Navigator.pop(context);
-    BlocProvider.of<ProfileBloc>(context).getFromGallery();
+    BlocProvider.of<ProfileBloc>(context).add(LoadingProfilePhoto());
+    await BlocProvider.of<ProfileBloc>(context).getFromGallery();
+    BlocProvider.of<ProfileBloc>(context).add(CheckProfilePhoto());
   }
 }
 
@@ -287,7 +319,13 @@ class _ProfilePhotoState extends State<ProfilePhoto> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileStates>(
       builder: (context, state) {
-        if (state is HasProfilePhoto) {
+        print('kl');
+        print(BlocProvider.of<ProfileBloc>(context).imageFile);
+        if (state is HasProfilePhoto ||
+            state is NameFieldDisplayed ||
+            state is NameFieldHide ||
+            state is PasswordFieldDisplayed ||
+            state is PasswordFieldHide) {
           return CircleAvatar(
               radius: 50.0,
               backgroundColor: AppColors.primary,
@@ -308,12 +346,13 @@ class _ProfilePhotoState extends State<ProfilePhoto> {
                         fit: BoxFit.cover,
                       ),
                     ));
-        } else {
+        } else if (state is ProfilePhotoLoading) {
           return const CircleAvatar(
             child: CircularProgressIndicator(),
           );
+        } else {
+          return const SizedBox();
         }
-        // return const SizedBox();
       },
     );
   }

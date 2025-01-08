@@ -37,6 +37,9 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
       await initPrefs();
       emit(HasProfilePhoto());
     });
+    on<LoadingProfilePhoto>((event, emit) async {
+      emit(ProfilePhotoLoading());
+    });
   }
 
   Future<void> initPrefs() async {
@@ -97,7 +100,7 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
     try {
       final Directory directory = await getApplicationDocumentsDirectory();
       final String path = directory.path;
-      final String fileName = 'profile_image.jpg';
+      const String fileName = 'profile_image.jpg';
       final String filePath = '$path/$fileName';
 
       // Copy the file to local storage

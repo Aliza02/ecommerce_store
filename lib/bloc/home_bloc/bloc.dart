@@ -62,12 +62,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
               message: 'Please connect to internet and try again'));
         }
       }
-
-      // if (products.isNotEmpty) {
-      //   emit(HomeStateWithData(product: products));
-      // } else {
-      //   emit(HomeStateWithNoData(message: 'No data found'));
-      // }
     });
   }
 

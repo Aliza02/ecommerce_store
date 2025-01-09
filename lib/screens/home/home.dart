@@ -10,7 +10,6 @@ import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/models/product.model.dart';
 import 'package:ecommerce_store/routes/routes.dart';
-import 'package:ecommerce_store/screens/cart/cart.dart';
 import 'package:ecommerce_store/shared_widgets/appbar.dart';
 import 'package:ecommerce_store/utils/Utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';

@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_states.dart';
+import 'package:ecommerce_store/models/order.model.dart';
 import 'package:ecommerce_store/models/product.model.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/utils/Utils.dart';
@@ -12,7 +15,9 @@ import 'package:flutter_cart/flutter_cart.dart';
 class CartBloc extends Bloc<CartEvents, CartState> {
   FlutterCart flutterCart = FlutterCart();
   String? currentAddress;
-  bool? addressChanged;
+  int orderNo = 10000 + Random().nextInt(900000);
+  final List<String> orderStatuses = ['In Process', 'Shipped', 'Delivered'];
+
   TextEditingController addressController = TextEditingController();
   Set<CartModel> get getCartItems => flutterCart.cartItemsList.toSet();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -91,17 +96,22 @@ class CartBloc extends Bloc<CartEvents, CartState> {
   Future<bool> saveOrderToDB(Set<CartModel> cartItem, double totalAmount,
       String shipmentAddress, String paymentMethod) async {
     for (int i = 0; i < cartItem.length; i++) {
-      await firestore.collection(auth.currentUser!.uid).doc().set({
-        'productName': cartItem.elementAt(i).productName,
-        'productDescription': cartItem.elementAt(i).productDetails,
-        'productImage': cartItem.elementAt(i).productImages!.first,
-        'quantity': cartItem.elementAt(i).quantity,
-        'price': cartItem.elementAt(i).variants.first.price.toString(),
-        'total': totalAmount,
-        'shipmentAddress': shipmentAddress,
-        'paymentMethod': paymentMethod,
-        'userName': auth.currentUser!.displayName,
-      });
+      final order = Orders(
+        productName: cartItem.elementAt(i).productName,
+        productDescription: cartItem.elementAt(i).productDetails,
+        productImage: cartItem.elementAt(i).productImages!.first,
+        quantity: cartItem.elementAt(i).quantity,
+        price: cartItem.elementAt(i).variants.first.price.toString(),
+        total: totalAmount,
+        shipmentAddress: shipmentAddress,
+        paymentMethod: paymentMethod,
+        userName: auth.currentUser!.displayName!,
+        orderNo: orderNo,
+        orderStatus: 'in process',
+      );
+      await firestore.collection(auth.currentUser!.uid).doc().set(
+            order.toMap(),
+          );
     }
     clearCart();
     return true;

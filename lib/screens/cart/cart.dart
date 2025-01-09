@@ -7,7 +7,6 @@ import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/shared_widgets/bottom_nav_bar.dart';
 import 'package:ecommerce_store/utils/Utils.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cart/model/cart_model.dart';

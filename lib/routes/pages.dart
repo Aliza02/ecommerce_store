@@ -1,6 +1,4 @@
-import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
-import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
-import 'package:ecommerce_store/bloc/loginBloc/login_bloc.dart';
+import 'package:ecommerce_store/bloc/orderBloc/order_bloc.dart';
 import 'package:ecommerce_store/bloc/profileBloc/profile_bloc.dart';
 import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/routes/routes.dart';
@@ -24,7 +22,10 @@ class Pages {
     AppRoutes.productDetail: (context) => const ProductDetail(),
     AppRoutes.cart: (context) => const Cart(),
     AppRoutes.checkout: (context) => const Checkout(),
-    AppRoutes.orders: (context) => const OrdersScreen(),
+    AppRoutes.orders: (context) => BlocProvider(
+          create: (context) => OrderBloc(),
+          child: const OrdersScreen(),
+        ),
     AppRoutes.profile: (context) => BlocProvider(
           create: (context) => ProfileBloc(),
           child: const ProfileScreen(),

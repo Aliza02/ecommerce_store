@@ -1,6 +1,5 @@
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_events.dart';
-import 'package:ecommerce_store/bloc/profileBloc/profile_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:flutter/material.dart';

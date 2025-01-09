@@ -3,6 +3,9 @@ import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
 import 'package:ecommerce_store/bloc/home_bloc/home_events.dart';
 import 'package:ecommerce_store/bloc/home_bloc/home_states.dart';
+import 'package:ecommerce_store/bloc/profileBloc/profile_bloc.dart';
+import 'package:ecommerce_store/bloc/profileBloc/profile_events.dart';
+import 'package:ecommerce_store/bloc/profileBloc/profile_states.dart';
 import 'package:ecommerce_store/bloc/signupBloc/signup_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/models/product.model.dart';
@@ -82,6 +85,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       BlocProvider.of<HomeBloc>(context).add(FetchDataEvent());
+      BlocProvider.of<ProfileBloc>(context).add(CheckProfilePhoto());
     });
     WidgetsBinding.instance.addObserver(this);
   }
@@ -127,23 +131,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     padding: const EdgeInsets.only(top: 40.0),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 30.0,
-                          child: auth.currentUser != null || userCreated
-                              ? Text(auth.currentUser!.displayName![0])
-                              : const Icon(
-                                  Icons.person,
-                                ),
+                        BlocBuilder<ProfileBloc, ProfileStates>(
+                          builder: (context, state) {
+                            if (state is HasProfilePhoto) {
+                              return CircleAvatar(
+                                radius: 30.0,
+                                child: (auth.currentUser != null ||
+                                            userCreated) &&
+                                        !BlocProvider.of<ProfileBloc>(context)
+                                            .hasProfilePhoto
+                                    ? Text(auth.currentUser!.displayName![0])
+                                    : ClipOval(
+                                        child: Image.file(
+                                          BlocProvider.of<ProfileBloc>(context)
+                                              .imageFile!,
+                                          width: 150,
+                                          height: 150,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                              );
+                            } else if (state is ProfilePhotoLoading) {
+                              return const CircleAvatar(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else {
+                              return const SizedBox();
+                            }
+                          },
                         ),
                         const SizedBox(width: 10.0),
-                        Text(
-                          userCreated || auth.currentUser != null
-                              ? auth.currentUser!.displayName.toString()
-                              : 'Guest User',
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontSize: 20.0,
-                          ),
+                        BlocBuilder<ProfileBloc, ProfileStates>(
+                          builder: (context, state) {
+                            return Text(
+                              userCreated || auth.currentUser != null
+                                  ? auth.currentUser!.displayName.toString()
+                                  : 'Guest User',
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 20.0,
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),

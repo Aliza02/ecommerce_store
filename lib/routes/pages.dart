@@ -17,7 +17,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Pages {
   static final pages = {
-    AppRoutes.home: (context) => const HomeScreen(),
+    AppRoutes.home: (context) => BlocProvider(
+          create: (context) => ProfileBloc(),
+          child: const HomeScreen(),
+        ),
     AppRoutes.productDetail: (context) => const ProductDetail(),
     AppRoutes.cart: (context) => const Cart(),
     AppRoutes.checkout: (context) => const Checkout(),

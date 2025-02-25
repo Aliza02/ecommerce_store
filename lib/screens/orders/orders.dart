@@ -6,6 +6,7 @@ import 'package:ecommerce_store/bloc/orderBloc/order_states.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -57,83 +58,98 @@ class _OrdersScreenState extends State<OrdersScreen> {
               BlocBuilder<OrderBloc, OrdersStates>(
                 builder: (context, state) {
                   if (state is LoadingState) {
-                    return const Expanded(
-                      child: Center(
-                        child: CircularProgressIndicator(),
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 80.0),
+                        child: Lottie.asset('assets/loading_indicator.json'),
                       ),
                     );
                   } else if (state is AllOrdersLoaded) {
-                    return Expanded(
-                      child: ListView.builder(
-                          shrinkWrap: true,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: state.orders.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Card(
-                                color: AppColors.white,
-                                child: ListTile(
-                                  leading: SizedBox(
-                                    width: 50.0,
-                                    child: CachedNetworkImage(
-                                      imageUrl:
-                                          state.orders[index].productImage,
-                                      height: 150.0,
-                                      width: 150.0,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  title: Text(
-                                    state.orders[index].productName,
-                                    maxLines: 2,
-                                    style: theme.textTheme.displaySmall,
-                                  ),
-                                  subtitle: Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "\$${state.orders[index].price}",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .labelSmall,
-                                            ),
-                                            const Spacer(),
-                                            Text(
-                                              "Quantity: ${state.orders[index].quantity}",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .displaySmall,
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 5.0),
-                                        Text(
-                                          state.orders[index].orderStatus,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontStyle: FontStyle.italic,
-                                            fontSize: 18.0,
-                                            color: state.orders[index]
-                                                        .orderStatus ==
-                                                    'in process'
-                                                ? AppColors.primary
-                                                : AppColors.green,
+                    return state.orders.isNotEmpty
+                        ? Expanded(
+                            child: ListView.builder(
+                                shrinkWrap: true,
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: state.orders.length,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 8),
+                                    child: Card(
+                                      color: AppColors.white,
+                                      elevation: 1.0,
+                                      semanticContainer: true,
+                                      shadowColor: AppColors.black,
+                                      child: ListTile(
+                                        leading: SizedBox(
+                                          width: 50.0,
+                                          child: CachedNetworkImage(
+                                            imageUrl: state
+                                                .orders[index].productImage,
+                                            height: 150.0,
+                                            width: 150.0,
+                                            fit: BoxFit.cover,
                                           ),
                                         ),
-                                      ],
+                                        title: Text(
+                                          state.orders[index].productName,
+                                          maxLines: 2,
+                                          style: theme.textTheme.displaySmall,
+                                        ),
+                                        subtitle: Padding(
+                                          padding:
+                                              const EdgeInsets.only(top: 8.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    "\$${state.orders[index].price}",
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelSmall,
+                                                  ),
+                                                  const Spacer(),
+                                                  Text(
+                                                    "Quantity: ${state.orders[index].quantity}",
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .displaySmall,
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 5.0),
+                                              Text(
+                                                state.orders[index].orderStatus,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontStyle: FontStyle.italic,
+                                                  fontSize: 18.0,
+                                                  color: state.orders[index]
+                                                              .orderStatus ==
+                                                          'in process'
+                                                      ? AppColors.primary
+                                                      : AppColors.green,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                }),
+                          )
+                        : Expanded(
+                            child: Center(
+                              child: Text(
+                                'No Orders to display',
+                                style: theme.textTheme.displayMedium,
                               ),
-                            );
-                          }),
-                    );
+                            ),
+                          );
                   } else {
                     return Expanded(
                       child: Center(

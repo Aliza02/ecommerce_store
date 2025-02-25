@@ -2,6 +2,7 @@ import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:ecommerce_store/shared_widgets/bottom_nav_bar.dart';
+import 'package:ecommerce_store/utils/Utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,7 +11,6 @@ class ShipmentDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cartItems = BlocProvider.of<CartBloc>(context).getCartItems;
     double totalAmount = BlocProvider.of<CartBloc>(context).totalAmount;
     final theme = Theme.of(context);
 
@@ -18,7 +18,7 @@ class ShipmentDetail extends StatelessWidget {
       child: Scaffold(
         bottomNavigationBar: BottomNavbar(
           onPressed: () => BlocProvider.of<CartBloc>(context)
-              .checkout(cartItems, context, AppRoutes.checkout),
+              .validateShipmentDetails(context, AppRoutes.checkout),
           title: 'Place Order',
         ),
         body: Padding(
@@ -90,12 +90,10 @@ class RadioTiles extends StatefulWidget {
 }
 
 class _RadioTilesState extends State<RadioTiles> {
-  String? _selectedPaymentMethod;
-
   final List<Map<String, String>> _paymentMethods = [
-    {'title': 'Credit Card', 'value': 'credit_card'},
+    {'title': 'Stripe', 'value': 'stripe'},
     {'title': 'COD', 'value': 'cod'},
-    {'title': 'Google Pay', 'value': 'google_pay'},
+    // {'title': 'Google Pay', 'value': 'google_pay'},
   ];
   @override
   Widget build(BuildContext context) {
@@ -104,10 +102,10 @@ class _RadioTilesState extends State<RadioTiles> {
         return RadioListTile<String>(
           title: Text(method['title']!),
           value: method['value']!,
-          groupValue: _selectedPaymentMethod,
+          groupValue: BlocProvider.of<CartBloc>(context).paymentMethod,
           onChanged: (value) {
             setState(() {
-              _selectedPaymentMethod = value;
+              BlocProvider.of<CartBloc>(context).paymentMethod = value;
             });
           },
         );

@@ -9,10 +9,12 @@ import 'package:ecommerce_store/models/product.model.dart';
 // import 'package:ecommerce_store/models/product.model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class HomeBloc extends Bloc<HomeEvent, HomeStates> {
   Connectivity connectivity = Connectivity();
   StreamSubscription? connectivitySubscription;
+  final Api api = Api(http.Client());
 
   Set<Product> products = {};
   int selectedDrawerTileIndex = 0;
@@ -67,7 +69,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeStates> {
 
   Future<Set<Product>> fetchProducts() async {
     try {
-      final response = await fetchData();
+      final response = await api.fetchData();
 
       if (response.status == true) {
         List<dynamic> jsonResponse = jsonDecode(response.data);

@@ -1,5 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:ecommerce_store/bloc/cartBloc/cart_bloc.dart';
+import 'package:ecommerce_store/bloc/paymentBloc/event.dart';
+import 'package:ecommerce_store/bloc/paymentBloc/payment_bloc.dart';
 import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/shared_widgets/bottom_nav_bar.dart';
 import 'package:ecommerce_store/utils/Utils.dart';
@@ -14,24 +16,63 @@ class Checkout extends StatelessWidget {
   Widget build(BuildContext context) {
     final cartItems = BlocProvider.of<CartBloc>(context).getCartItems;
     final totalAmount = BlocProvider.of<CartBloc>(context).totalAmount;
+    final paymentMethod = BlocProvider.of<CartBloc>(context).paymentMethod;
     final theme = Theme.of(context);
     return SafeArea(
       child: Scaffold(
-        bottomNavigationBar: BottomNavbar(
-            onPressed: () => saveData(
-                cartItems: cartItems,
+        bottomNavigationBar: BlocListener<PaymentBloc, PaymentStatus>(
+          listener: (context, state) {
+            if (state == PaymentStatus.success) {
+              saveData(
+                  cartItems: cartItems,
+                  context: context,
+                  totalAmount: totalAmount,
+                  shipmentAddress: BlocProvider.of<CartBloc>(context)
+                          .addressController
+                          .text
+                          .isEmpty
+                      ? BlocProvider.of<CartBloc>(context)
+                          .currentAddress
+                          .toString()
+                      : BlocProvider.of<CartBloc>(context)
+                          .addressController
+                          .text,
+                  paymentMethod:
+                      BlocProvider.of<CartBloc>(context).paymentMethod!);
+            } else if (state == PaymentStatus.loading) {
+              Utils.showLoadingDialog(context);
+            } else if (state == PaymentStatus.error) {
+              Navigator.pop(context);
+              Utils.showFailedDialog(
                 context: context,
-                totalAmount: totalAmount,
-                shipmentAddress: BlocProvider.of<CartBloc>(context)
-                        .addressController
-                        .text
-                        .isEmpty
-                    ? BlocProvider.of<CartBloc>(context)
-                        .currentAddress
-                        .toString()
-                    : BlocProvider.of<CartBloc>(context).addressController.text,
-                paymentMethod: 'cod'), //TODO: change payment method
-            title: 'Place Order'),
+                message: "Payment failed: Try again or Choose COD",
+                placeorder: () {
+                  Navigator.pop(context);
+                },
+              );
+            }
+          },
+          child: BottomNavbar(
+              onPressed: () => paymentMethod == "stripe"
+                  ? BlocProvider.of<PaymentBloc>(context).add(ProcessPayment())
+                  : saveData(
+                      cartItems: cartItems,
+                      context: context,
+                      totalAmount: totalAmount,
+                      shipmentAddress: BlocProvider.of<CartBloc>(context)
+                              .addressController
+                              .text
+                              .isEmpty
+                          ? BlocProvider.of<CartBloc>(context)
+                              .currentAddress
+                              .toString()
+                          : BlocProvider.of<CartBloc>(context)
+                              .addressController
+                              .text,
+                      paymentMethod:
+                          BlocProvider.of<CartBloc>(context).paymentMethod!),
+              title: 'Place Order'),
+        ),
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 8.0),
           child: Column(
@@ -137,7 +178,9 @@ class Checkout extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(18.0),
                         child: Text(
-                          'COD', //TODO: change payment method
+                          BlocProvider.of<CartBloc>(context)
+                              .paymentMethod
+                              .toString(),
                           style: theme.textTheme.displayMedium,
                         ),
                       ),

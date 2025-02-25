@@ -5,3 +5,5 @@ class LoginSubmitEvents extends LoginEvents {
   String password;
   LoginSubmitEvents({required this.email, required this.password});
 }
+
+class GuestUserEvents extends LoginEvents {}

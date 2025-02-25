@@ -4,6 +4,7 @@ import 'package:ecommerce_store/constants/colors.dart';
 import 'package:ecommerce_store/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lottie/lottie.dart';
 
 class Utils {
   static void showSnackBar(String message, BuildContext context) {
@@ -18,16 +19,9 @@ class Utils {
       barrierDismissible: false,
       context: context,
       builder: (context) {
-        return const AlertDialog(
+        return AlertDialog(
           backgroundColor: Colors.transparent,
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
-            ],
-          ),
+          content: Lottie.asset('assets/loading_indicator.json'),
         );
       },
     );

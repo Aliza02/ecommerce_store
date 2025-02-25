@@ -16,6 +16,7 @@ class CartBloc extends Bloc<CartEvents, CartState> {
   FlutterCart flutterCart = FlutterCart();
   String? currentAddress;
   int orderNo = 10000 + Random().nextInt(900000);
+  String? paymentMethod;
   final List<String> orderStatuses = ['In Process', 'Shipped', 'Delivered'];
 
   TextEditingController addressController = TextEditingController();
@@ -48,6 +49,15 @@ class CartBloc extends Bloc<CartEvents, CartState> {
       emit(ItemQuantityUpdated(item: event.item, quantity: event.quantity));
     });
   }
+
+  void validateShipmentDetails(BuildContext context, String routeName) {
+    if (paymentMethod == null) {
+      Utils.showSnackBar('Select payment method to proceed', context);
+    } else {
+      Navigator.pushNamed(context, routeName);
+    }
+  }
+
   void checkout(
       Set<CartModel> cartItems, BuildContext context, String routeName) {
     if (auth.currentUser != null) {

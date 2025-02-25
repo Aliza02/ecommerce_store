@@ -1,3 +1,4 @@
+import 'dart:io';
 
 import 'package:ecommerce_store/bloc/home_bloc/bloc.dart';
 import 'package:ecommerce_store/bloc/profileBloc/profile_bloc.dart';
@@ -36,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
                         color: AppColors.black,
                       ),
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.popAndPushNamed(context, AppRoutes.home);
                         BlocProvider.of<HomeBloc>(context)
                             .selectedDrawerTileIndex = 0;
                       },
@@ -312,46 +313,57 @@ class _ProfilePhotoState extends State<ProfilePhoto> {
     super.initState();
 
     BlocProvider.of<ProfileBloc>(context).add(CheckProfilePhoto());
+
+    // state is HasProfilePhoto ||
+    //         state is NameFieldDisplayed ||
+    //         state is NameFieldHide ||
+    //         state is PasswordFieldDisplayed ||
+    //         state is PasswordFieldHide
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileStates>(
       builder: (context, state) {
-        print('kl');
-        print(BlocProvider.of<ProfileBloc>(context).imageFile);
-        if (state is HasProfilePhoto ||
-            state is NameFieldDisplayed ||
-            state is NameFieldHide ||
-            state is PasswordFieldDisplayed ||
-            state is PasswordFieldHide) {
-          return CircleAvatar(
-              radius: 50.0,
-              backgroundColor: AppColors.primary,
-              child: (widget.auth.currentUser != null || widget.userCreated) &&
-                      !BlocProvider.of<ProfileBloc>(context).hasProfilePhoto
-                  ? Text(
-                      widget.auth.currentUser!.displayName![0],
-                      style: const TextStyle(
-                        fontSize: 40.0,
-                        color: AppColors.white,
-                      ),
-                    )
-                  : ClipOval(
-                      child: Image.file(
-                        BlocProvider.of<ProfileBloc>(context).imageFile!,
-                        width: 150,
-                        height: 150,
-                        fit: BoxFit.cover,
-                      ),
-                    ));
-        } else if (state is ProfilePhotoLoading) {
+        final profileBloc = context.read<ProfileBloc>();
+
+        if (profileBloc == null) {
+          return const CircleAvatar(
+            radius: 30.0,
+            child: Icon(Icons.person),
+          );
+        }
+
+        if (state is ProfilePhotoLoading) {
           return const CircleAvatar(
             child: CircularProgressIndicator(),
           );
-        } else {
-          return const SizedBox();
         }
+
+        return CircleAvatar(
+          radius: 50.0,
+          backgroundColor: AppColors.primary,
+          child: (widget.auth.currentUser != null || widget.userCreated) &&
+                  !(profileBloc.hasProfilePhoto ?? false) &&
+                  profileBloc.imageFile == null
+              ? Text(
+                  widget.auth.currentUser?.displayName?.substring(0, 1) ?? 'G',
+                  style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold),
+                )
+              : ClipOval(
+                  child: profileBloc.imageFile != null
+                      ? Image.file(
+                          profileBloc.imageFile!,
+                          width: 150,
+                          height: 150,
+                          fit: BoxFit.cover,
+                        )
+                      : const Icon(Icons.person),
+                ),
+        );
       },
     );
   }

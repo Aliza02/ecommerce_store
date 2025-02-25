@@ -13,7 +13,7 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
   TextEditingController nameController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
-  final String imageKey = FirebaseAuth.instance.currentUser!.uid;
+  final String? imageKey = FirebaseAuth.instance.currentUser?.uid;
   bool hasProfilePhoto = false;
 
   File? imageFile;
@@ -35,7 +35,11 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
     });
     on<CheckProfilePhoto>((event, emit) async {
       await initPrefs();
-      emit(HasProfilePhoto());
+      if (hasProfilePhoto) {
+        emit(HasProfilePhoto());
+      } else {
+        emit(ProfileInitialState());
+      }
     });
     on<LoadingProfilePhoto>((event, emit) async {
       emit(ProfilePhotoLoading());
@@ -48,12 +52,15 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
   }
 
   Future<void> _loadProfileImage() async {
-    final String? imagePath = _prefs?.getString(imageKey);
+    if (_prefs == null || imageKey == null) return;
+    final String? imagePath = _prefs!.getString(imageKey!);
     if (imagePath != null) {
       // setState(() {
       imageFile = File(imagePath);
       hasProfilePhoto = true;
       // });
+    } else {
+      hasProfilePhoto = false;
     }
   }
 
@@ -67,7 +74,7 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
       if (pickedFile != null) {
         final File image = File(pickedFile.path);
         await _saveImageToLocalStorage(image);
-        print(imageFile!.path);
+        // print(imageFile!.path);
         // setState(() {
         imageFile = image;
         // });
@@ -98,6 +105,7 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
 
   Future<void> _saveImageToLocalStorage(File image) async {
     try {
+      if (_prefs == null || imageKey == null) return;
       final Directory directory = await getApplicationDocumentsDirectory();
       final String path = directory.path;
       const String fileName = 'profile_image.jpg';
@@ -107,7 +115,7 @@ class ProfileBloc extends Bloc<ProfileEvents, ProfileStates> {
       await image.copy(filePath);
 
       // Save the file path in SharedPreferences
-      await _prefs?.setString(imageKey, filePath);
+      await _prefs!.setString(imageKey!, filePath);
     } catch (e) {
       debugPrint('Error saving image: $e');
     }

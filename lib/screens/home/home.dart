@@ -19,6 +19,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:lottie/lottie.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -51,32 +52,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return currentAddress;
   }
 
-  Stream<String> _handleLocationPermission() async* {
+  Future<String> _handleLocationPermission() async {
     bool serviceEnabled;
     LocationPermission permission;
+    String address = '';
     permission = await Geolocator.checkPermission();
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
-      yield 'Please enable location service from settings';
-    } else {
+      return 'Please enable location service from settings';
+    } else if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          openAppSettings();
-        }
-      } else if (permission == LocationPermission.whileInUse &&
-          serviceEnabled) {
-        currentPosition = await Geolocator.getCurrentPosition();
-        BlocProvider.of<CartBloc>(context).currentAddress =
-            await getAddressFromLatLng(currentPosition!);
-        String address = await getAddressFromLatLng(currentPosition!);
-
-        yield address;
-      } else if (permission == LocationPermission.deniedForever) {
         openAppSettings();
       }
+    } else if (permission == LocationPermission.deniedForever) {
+      openAppSettings();
     }
+    currentPosition = await Geolocator.getCurrentPosition();
+    print("current position: $currentPosition");
+    BlocProvider.of<CartBloc>(context).currentAddress =
+        await getAddressFromLatLng(currentPosition!);
+    address = await getAddressFromLatLng(currentPosition!);
+    return address;
   }
 
   @override
@@ -84,9 +82,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) {
       BlocProvider.of<HomeBloc>(context).add(FetchDataEvent());
-      BlocProvider.of<ProfileBloc>(context).add(CheckProfilePhoto());
+      BlocProvider.of<ProfileBloc>(context).add(
+          CheckProfilePhoto()); // 🚨 ProfileBloc might not be available yet!
+
+      // context.read<ProfileBloc>().add(CheckProfilePhoto());
     });
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    try {
+      context.read<ProfileBloc>().add(CheckProfilePhoto());
+      print("✅ ProfileBloc found:");
+    } catch (e) {
+      print("❌ ProfileBloc is NULL: $e");
+    }
   }
 
   @override
@@ -99,7 +112,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      print('resume');
       _handleLocationPermission();
+      // _handleLocationPermission().listen((address) {
+      //   print(address);
+      // });
     }
   }
 
@@ -132,31 +149,44 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       children: [
                         BlocBuilder<ProfileBloc, ProfileStates>(
                           builder: (context, state) {
-                            if (state is HasProfilePhoto) {
-                              return CircleAvatar(
+                            final profileBloc = context.read<ProfileBloc>();
+
+                            if (profileBloc == null) {
+                              return const CircleAvatar(
                                 radius: 30.0,
-                                child: (auth.currentUser != null ||
-                                            userCreated) &&
-                                        !BlocProvider.of<ProfileBloc>(context)
-                                            .hasProfilePhoto
-                                    ? Text(auth.currentUser!.displayName![0])
-                                    : ClipOval(
-                                        child: Image.file(
-                                          BlocProvider.of<ProfileBloc>(context)
-                                              .imageFile!,
-                                          width: 150,
-                                          height: 150,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
+                                child: Icon(Icons.person),
                               );
-                            } else if (state is ProfilePhotoLoading) {
+                            }
+
+                            if (state is ProfilePhotoLoading) {
                               return const CircleAvatar(
                                 child: CircularProgressIndicator(),
                               );
-                            } else {
-                              return const SizedBox();
                             }
+
+                            return CircleAvatar(
+                              radius: 30.0,
+                              child:
+                                  (auth.currentUser != null || userCreated) &&
+                                          !(profileBloc.hasProfilePhoto ??
+                                              false) && // ✅ Avoid null issue
+                                          profileBloc.imageFile ==
+                                              null // ✅ Avoid null issue
+                                      ? Text(auth.currentUser?.displayName
+                                              ?.substring(0, 1) ??
+                                          'G') // ✅ Avoid null issue
+                                      : ClipOval(
+                                          child: profileBloc.imageFile != null
+                                              ? Image.file(
+                                                  profileBloc.imageFile!,
+                                                  width: 150,
+                                                  height: 150,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : const Icon(Icons
+                                                  .person), // ✅ Default icon if no image
+                                        ),
+                            );
                           },
                         ),
                         const SizedBox(width: 10.0),
@@ -204,10 +234,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             Navigator.pop(context);
                             BlocProvider.of<HomeBloc>(context)
                                 .selectedDrawerTileIndex = index;
-                            Navigator.pushNamed(
-                              context,
-                              pages.elementAt(index),
-                            );
+                            if (index == 3 && auth.currentUser != null) {
+                              Navigator.pushNamed(
+                                context,
+                                pages.elementAt(index),
+                              );
+                            } else if (index >= 0 && index < 3) {
+                              Navigator.pushNamed(
+                                context,
+                                pages.elementAt(index),
+                              );
+                            } else {
+                              Utils.showSnackBar(
+                                  'Login to see profile', context);
+                            }
                           },
                         );
                       },
@@ -259,22 +299,30 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 Row(
                   children: [
                     const Icon(Icons.location_on_outlined),
-                    StreamBuilder(
-                      stream: _handleLocationPermission(),
+                    FutureBuilder(
+                      future: _handleLocationPermission(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Text('Fetching location...');
                         } else if (snapshot.hasError) {
-                          return Text(snapshot.error.toString());
-                        } else if (snapshot.hasData) {
+                          return Flexible(
+                              child: Text(snapshot.error.toString()));
+                        } else if (snapshot.connectionState ==
+                            ConnectionState.done) {
+                          print('abc');
+                          print(snapshot.data);
                           return Flexible(
                             child: Text(
                               snapshot.data.toString(),
                             ),
                           );
                         } else {
-                          return Text(snapshot.data.toString());
+                          print(snapshot.data);
+                          return const SizedBox();
+                          // Text(
+                          //   snapshot.data.toString(),
+                          // );
                         }
                       },
                     ),
@@ -354,8 +402,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     bloc: BlocProvider.of<HomeBloc>(context),
                     builder: (context, state) {
                       if (state is HomeLoadingData) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
+                        return Center(
+                          child: Lottie.asset('assets/loading_indicator.json'),
                         );
                       } else if (state is HomeStateWithData) {
                         return ListView.builder(

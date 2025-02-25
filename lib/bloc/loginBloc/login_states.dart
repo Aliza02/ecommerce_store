@@ -9,4 +9,6 @@ class InValidState extends LoginStates {
   InValidState({required this.errorMessage});
 }
 
+class GuestUserState extends LoginStates {}
+
 class ValidState extends LoginStates {}

@@ -91,7 +91,10 @@ class SignupState extends State<Signup> {
                 BlocConsumer<SignUpBloc, SignUpStates>(
                     listener: (context, state) {
                   if (state is InvalidSignUpState) {
-                    Navigator.pop(context);
+                    if (state is SignUpLoadingState) {
+                      Navigator.pop(context);
+                    }
+
                     Utils.showSnackBar(state.errorMessage, context);
                   } else if (state is SignUpLoadingState) {
                     Utils.showLoadingDialog(context);
@@ -100,6 +103,7 @@ class SignupState extends State<Signup> {
                     Navigator.pushNamed(context, AppRoutes.home);
                   }
                 }, builder: (context, state) {
+                  print(state);
                   if (state is InitialState || state is InvalidSignUpState) {
                     return ElevatedButton(
                       child: Text(

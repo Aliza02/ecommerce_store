@@ -12,6 +12,9 @@ class LoginBloc extends Bloc<LoginEvents, LoginStates> {
   bool userLoggedIn = false;
 
   LoginBloc() : super(InitialState()) {
+    on<GuestUserEvents>((event, emit) {
+      emit(GuestUserState());
+    });
     on<LoginSubmitEvents>(
       (event, emit) async {
         final ConnectivityResult connectivityResult =

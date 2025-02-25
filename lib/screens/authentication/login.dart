@@ -68,11 +68,37 @@ class LoginState extends State<Login> {
                 ],
               ),
               const SizedBox(height: 10),
-              const GuestButton(),
+              // const GuestButton(),
+              BlocConsumer<LoginBloc, LoginStates>(
+                listener: (context, state) {
+                  print(state);
+                  if (state is GuestUserState) {
+                    Navigator.pushNamed(context, AppRoutes.home);
+                  }
+                },
+                builder: (context, state) {
+                  return TextButton(
+                    child: const Text(
+                      'Continue as Guest',
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                    onPressed: () => BlocProvider.of<LoginBloc>(context)
+                        .add(GuestUserEvents()),
+                  );
+                },
+              ),
               BlocConsumer<LoginBloc, LoginStates>(
                 listener: (context, state) {
                   if (state is InValidState) {
-                    Navigator.pop(context);
+                    if (LoginLoadingState is LoginLoadingState) {
+                      Navigator.pop(context);
+                    }
+
                     Utils.showSnackBar(state.errorMessage, context);
                   } else if (state is LoginLoadingState) {
                     Utils.showLoadingDialog(context);

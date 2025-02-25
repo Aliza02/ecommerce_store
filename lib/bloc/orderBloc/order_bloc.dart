@@ -16,11 +16,13 @@ class OrderBloc extends Bloc<OrderEvents, OrdersStates> {
 
   Future<List<Orders>> getAllOrders() async {
     List<Orders> orders = [];
-    QuerySnapshot snap = await FirebaseFirestore.instance
-        .collection(auth.currentUser!.uid)
-        .get();
-    for (int i = 0; i < snap.docs.length; i++) {
-      orders.add(Orders.fromMap(snap.docs[i].data() as Map<String, dynamic>));
+    if (auth.currentUser?.uid != null) {
+      QuerySnapshot snap = await FirebaseFirestore.instance
+          .collection(auth.currentUser!.uid)
+          .get();
+      for (int i = 0; i < snap.docs.length; i++) {
+        orders.add(Orders.fromMap(snap.docs[i].data() as Map<String, dynamic>));
+      }
     }
 
     return orders;
